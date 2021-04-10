@@ -1,0 +1,81 @@
+trigger:
+  branches:
+    include:
+      - master
+  paths:
+    include:
+      - 'lib/*'
+      - 'test/*'
+
+pool:
+  vmImage: 'windows-2019'
+
+variables:
+  build_wrapper_dir: ''
+  build_wrapper_exe: ''
+
+jobs:
+  - job: build_lib
+    displayName: Build Lib
+    steps:
+    - task: PowerShell@2
+      displayName: Download Sonar Build Wrapper  
+      inputs:
+        targetType: 'inline'
+        script: |
+          $build_wrapper_dir = "$(Build.Repository.LocalPath)/build-wrapper-win-x86"
+          $build_wrapper_exe = "$(Build.Repository.LocalPath)/build-wrapper-win-x86/build-wrapper-win-x86-64.exe"
+
+          Write-Host "##vso[task.setvariable variable=build_wrapper_dir]$build_wrapper_dir"
+          Write-Host "##vso[task.setvariable variable=build_wrapper_exe]$build_wrapper_exe"
+
+          Invoke-WebRequest -Uri 'https://sonarcloud.io/static/cpp/build-wrapper-win-x86.zip' -MaximumRedirection 5 -Method GET -OutFile '$(Build.Repository.LocalPath)/wrapper.zip'
+          Expand-Archive -Path '$(Build.Repository.LocalPath)/wrapper.zip' -DestinationPath '$(Build.Repository.LocalPath)'
+        failOnStderr: true
+        showWarnings: true
+        pwsh: true
+    - task: SonarCloudPrepare@1
+      displayName: Prepare Sonar
+      inputs:
+        SonarCloud: 'Sonar Cloud'
+        organization: 'gfurtadoalmeida'
+        scannerMode: 'CLI'
+        configMode: 'file'
+        extraProperties: |
+          sonar.cfamily.threads=2
+          sonar.cfamily.cache.enabled=false
+          sonar.cfamily.build-wrapper-output=$(build_wrapper_dir)
+    # Do the analysis building without tests, otherwise it will complain
+    # about C++ rules. This is a C library not a C++ one.
+    - task: CMake@1
+      displayName: CMake Generate
+      inputs:
+        cmakeArgs: -DBUILD_TEST:BOOL=OFF -G "Visual Studio 16 2019" -A Win32 -H$(Build.Repository.LocalPath) -B$(Build.Repository.LocalPath)\build
+    - task: PowerShell@2
+      displayName: CMake Build
+      inputs:
+        targetType: 'inline'
+        script: |
+          & '$(build_wrapper_exe)' --out-dir '$(build_wrapper_dir)' cmake --build '$(Build.Repository.LocalPath)/build' --config Release
+        failOnStderr: true
+        showWarnings: true
+        pwsh: true
+    - task: SonarCloudAnalyze@1
+      displayName: Sonar Analyze
+    - task: SonarCloudPublish@1
+      displayName: Sonar Publish
+      inputs:
+        pollingTimeoutSec: '300'
+  - job: build_test
+    displayName: Build Test
+    dependsOn: build_lib
+    steps:
+    - task: CMake@1
+      displayName: CMake Generate
+      inputs:
+        cmakeArgs: -DBUILD_TEST:BOOL=ON -G "Visual Studio 16 2019" -A Win32 -H$(Build.Repository.LocalPath) -B$(Build.Repository.LocalPath)\build
+    - task: CMake@1
+      displayName: CMake Build
+      inputs:
+        workingDirectory: build
+        cmakeArgs: --build . --config Release
