@@ -4,7 +4,7 @@
 ##  You don't have to download any extra app.This project is compatible with Apple HomeKit App that comes pre-installed on your iOS Device. Support for google home and alexa will be added soon.
 
 
-## [DEMO VIDEO:] (https://youtu.be/5DxWyh5Lduk).
+## [DEMO VIDEO:] (https://youtu.be/5DxWyh5Lduk)
 
 ## Introduction
 
