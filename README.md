@@ -1,5 +1,3 @@
-# Project also submitted at IEEE-DTU VIHAAN 4.0 Click [HERE](https://devfolio.co/submissions/mirai-secured-with-automation-a035)
-
 ## NOTE: All the liscences and references are mentioned in their respective files.
 ##  You don't have to download any extra app.This project is compatible with Apple HomeKit App that comes pre-installed on your iOS Device. Support for google home and alexa will be added soon.
 
