@@ -1,6 +1,7 @@
 ## NOTE: All the liscences and references are mentioned in their respective files.
 ##  You don't have to download any extra app.This project is compatible with Apple HomeKit App that comes pre-installed on your iOS Device. Support for google home and alexa will be added soon.
 
+## Demo Video
 [![DEMO VIDEO](https://img.youtube.com/vi/5DxWyh5Lduk/0.jpg)](https://www.youtube.com/watch?v=5DxWyh5Lduk)
 
 ## Introduction
